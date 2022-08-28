@@ -12,6 +12,7 @@
 #include "displayapp/screens/WatchFaceTerminal.h"
 #include "displayapp/screens/WatchFaceAnalog.h"
 #include "displayapp/screens/WatchFacePineTimeStyle.h"
+#include "displayapp/screens/WatchFaceAksdark.h"
 
 using namespace Pinetime::Applications::Screens;
 
@@ -43,7 +44,7 @@ Clock::Clock(DisplayApp* app,
           return WatchFacePineTimeStyleScreen();
           break;
         case 3:
-          return WatchFaceTerminalScreen();
+          return WatchFaceAksdark();
           break;
       }
       return WatchFaceDigitalScreen();
@@ -102,4 +103,15 @@ std::unique_ptr<Screen> Clock::WatchFaceTerminalScreen() {
                                                       settingsController,
                                                       heartRateController,
                                                       motionController);
+}
+
+std::unique_ptr<Screen> Clock::WatchFaceAksdark() {
+    return std::make_unique<Screens::WatchFaceAksdark>(app,
+                                                        dateTimeController,
+                                                        batteryController,
+                                                        bleController,
+                                                        notificatioManager,
+                                                        settingsController,
+                                                        heartRateController,
+                                                        motionController);
 }
