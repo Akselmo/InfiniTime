@@ -418,8 +418,11 @@ typedef void* lv_indev_drv_user_data_t;            /*Type of user data in the in
                                LV_FONT_DECLARE(jetbrains_mono_42) \
                                LV_FONT_DECLARE(jetbrains_mono_76) \
                                LV_FONT_DECLARE(open_sans_light) \
-                               LV_FONT_DECLARE(lv_font_sys_48)
-
+                               LV_FONT_DECLARE(lv_font_sys_48)         \
+                               LV_FONT_DECLARE(plex_mono_20) \
+                                LV_FONT_DECLARE(plex_mono_42) \
+                                LV_FONT_DECLARE(plex_mono_76)\
+                                LV_FONT_DECLARE(plex_mono_80)
 /* Enable it if you have fonts with a lot of characters.
  * The limit depends on the font size, font face and bpp
  * but with > 10,000 characters if you see issues probably you need to enable it.*/
