@@ -48,7 +48,7 @@
    "plex_mono_20": {
       "sources": [
          {
-            "file": "IBMPlexMono-Regular.ttf",
+            "file": "IBMPlexMono-Bold.ttf",
             "range": "0x20-0x7e, 0x410-0x44f"
          },
          {
