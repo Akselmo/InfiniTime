@@ -35,6 +35,14 @@ WatchFaceAksdark::WatchFaceAksdark(DisplayApp* app,
   settingsController.SetClockFace(3);
 
   //20 characters with default font size
+  //240x240 res
+
+  //BACKGROUND
+  background = lv_obj_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_bg_color(background, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, LV_COLOR_MAKE(0x20, 0x20, 0x20));
+  lv_obj_set_style_local_radius(background, LV_BTN_PART_MAIN, LV_STATE_DEFAULT, 0);
+  lv_obj_set_size(background, 240, 240);
+  lv_obj_align(background, lv_scr_act(), LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
   //TEXT LABELS
   batteryValue = lv_label_create(lv_scr_act(), nullptr);
@@ -43,17 +51,21 @@ WatchFaceAksdark::WatchFaceAksdark(DisplayApp* app,
   connectState = lv_label_create(lv_scr_act(), nullptr);
   SetupLabel(connectState, LV_ALIGN_IN_LEFT_MID, 0, 40, &plex_mono_20);
 
-  label_date = lv_label_create(lv_scr_act(), nullptr);
-  SetupLabel(label_date, LV_ALIGN_IN_LEFT_MID, 0, -40, &plex_mono_20);
-
+  /*
   label_prompt_1 = lv_label_create(lv_scr_act(), nullptr);
-  SetupLabel(label_prompt_1, LV_ALIGN_IN_LEFT_MID, 0, -80, &plex_mono_20);
+  lv_label_set_text_static(label_prompt_1, "X--------XX--------X");
+  SetupLabel(label_prompt_1, LV_ALIGN_IN_TOP_LEFT, 0, 0, &plex_mono_20);
 
   label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
-  SetupLabel(label_prompt_2, LV_ALIGN_IN_LEFT_MID, 0, 60, &plex_mono_20);
+  lv_label_set_text_static(label_prompt_2, "X--------XX--------X");
+  SetupLabel(label_prompt_2, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0, &plex_mono_20);
+  */
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
-  SetupLabel(label_time, LV_ALIGN_IN_LEFT_MID, 0, -60, &plex_mono_20);
+  SetupLabel(label_time, LV_ALIGN_IN_LEFT_MID, 20, -60, &plex_mono_42);
+
+  label_date = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(label_date, LV_ALIGN_IN_LEFT_MID, 60, -20, &plex_mono_20);
 
   heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
   SetupLabel(heartbeatValue, LV_ALIGN_IN_LEFT_MID, 0, 20, &plex_mono_20);

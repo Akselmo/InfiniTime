@@ -55,6 +55,7 @@ namespace Pinetime {
         DirtyValue<bool> heartbeatRunning {};
         DirtyValue<bool> notificationState {};
 
+        lv_obj_t* background;
         lv_obj_t* label_time;
         lv_obj_t* label_date;
         lv_obj_t* label_prompt_1;
