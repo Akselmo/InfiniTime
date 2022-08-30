@@ -74,6 +74,7 @@ namespace Pinetime {
         Controllers::MotionController& motionController;
 
         lv_task_t* taskRefresh;
+        void SetupLabel(lv_obj_t* label, int align, int x_ofs, int y_ofs, _lv_font_struct* font);
       };
     }
   }

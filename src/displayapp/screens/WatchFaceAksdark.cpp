@@ -36,55 +36,38 @@ WatchFaceAksdark::WatchFaceAksdark(DisplayApp* app,
 
   //20 characters with default font size
 
+  //TEXT LABELS
   batteryValue = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(batteryValue, true);
-  lv_obj_align(batteryValue, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -20);
-  lv_obj_set_style_local_text_font(batteryValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
+  SetupLabel(batteryValue, LV_ALIGN_IN_LEFT_MID, 0, -20, &plex_mono_20);
 
   connectState = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(connectState, true);
-  lv_obj_align(connectState, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 40);
-  lv_obj_set_style_local_text_font(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
+  SetupLabel(connectState, LV_ALIGN_IN_LEFT_MID, 0, 40, &plex_mono_20);
 
+  label_date = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(label_date, LV_ALIGN_IN_LEFT_MID, 0, -40, &plex_mono_20);
+
+  label_prompt_1 = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(label_prompt_1, LV_ALIGN_IN_LEFT_MID, 0, -80, &plex_mono_20);
+
+  label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(label_prompt_2, LV_ALIGN_IN_LEFT_MID, 0, 60, &plex_mono_20);
+
+  label_time = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(label_time, LV_ALIGN_IN_LEFT_MID, 0, -60, &plex_mono_20);
+
+  heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(heartbeatValue, LV_ALIGN_IN_LEFT_MID, 0, 20, &plex_mono_20);
+
+  stepValue = lv_label_create(lv_scr_act(), nullptr);
+  SetupLabel(stepValue, LV_ALIGN_IN_LEFT_MID, 0, 0, &plex_mono_20);
+
+
+  // ICONS
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(notificationIcon, nullptr, LV_ALIGN_IN_LEFT_MID, 0, -100);
 
-  label_date = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(label_date, true);
-  lv_obj_align(label_date, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -40);
-  lv_obj_set_style_local_text_font(label_date, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
 
-
-  label_prompt_1 = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_align(label_prompt_1, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -80);
-  lv_label_set_text_static(label_prompt_1, "-X-");
-  lv_obj_set_style_local_text_font(label_prompt_1, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
-
-
-  label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
-  lv_obj_align(label_prompt_2, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 60);
-  lv_label_set_text_static(label_prompt_2, "-X-");
-  lv_obj_set_style_local_text_font(label_prompt_2, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
-
-
-  label_time = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(label_time, true);
-  lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -60);
-  lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
-
-  heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(heartbeatValue, true);
-  lv_obj_align(heartbeatValue, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 20);
-  lv_obj_set_style_local_text_font(heartbeatValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
-
-
-  stepValue = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(stepValue, true);
-  lv_obj_align(stepValue, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 0);
-  lv_obj_set_style_local_text_font(stepValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
-
-
-    taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
+  taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
   Refresh();
 }
 
@@ -187,4 +170,11 @@ void WatchFaceAksdark::Refresh() {
   if (stepCount.IsUpdated() || motionSensorOk.IsUpdated()) {
     lv_label_set_text_fmt(stepValue, "#ffbf40 %lu steps#", stepCount.Get());
   }
+}
+
+void WatchFaceAksdark::SetupLabel(lv_obj_t* label, int align, int x_ofs, int y_ofs, _lv_font_struct* font)
+{
+  lv_label_set_recolor(label, true);
+  lv_obj_align(label, lv_scr_act(), align, x_ofs, y_ofs);
+  lv_obj_set_style_local_text_font(label, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, font);
 }
