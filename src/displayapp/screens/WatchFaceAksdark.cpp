@@ -62,6 +62,7 @@ WatchFaceAksdark::WatchFaceAksdark(DisplayApp* app,
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(label_time, true);
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -60);
+  lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &plex_mono_20);
 
   heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(heartbeatValue, true);
