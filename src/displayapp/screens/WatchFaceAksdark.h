@@ -6,6 +6,7 @@
 #include <memory>
 #include "displayapp/screens/Screen.h"
 #include "components/datetime/DateTimeController.h"
+#include "BatteryIcon.h"
 
 namespace Pinetime {
   namespace Controllers {
@@ -45,6 +46,7 @@ namespace Pinetime {
         uint8_t currentDay = 0;
 
         DirtyValue<int> batteryPercentRemaining {};
+        DirtyValue<bool> isCharging {};
         DirtyValue<bool> powerPresent {};
         DirtyValue<bool> bleState {};
         DirtyValue<bool> bleRadioEnabled {};
@@ -63,8 +65,16 @@ namespace Pinetime {
         lv_obj_t* batteryValue;
         lv_obj_t* heartbeatValue;
         lv_obj_t* stepValue;
-        lv_obj_t* notificationIcon;
         lv_obj_t* connectState;
+
+        lv_obj_t* notificationIcon;
+        lv_obj_t* heartbeatIcon;
+        lv_obj_t* stepIcon;
+        lv_obj_t* chargeIcon;
+        lv_obj_t* bluetoothIcon;
+
+        lv_obj_t* batteryIconParent;
+        BatteryIcon batteryIcon;
 
         Controllers::DateTime& dateTimeController;
         Controllers::Battery& batteryController;
@@ -75,7 +85,12 @@ namespace Pinetime {
         Controllers::MotionController& motionController;
 
         lv_task_t* taskRefresh;
-        void SetupLabel(lv_obj_t* label, int align, int x_ofs, int y_ofs, _lv_font_struct* font);
+
+        //Helper methods
+        void SetupLabel(lv_obj_t* label, int x_ofs, int y_ofs, _lv_font_struct* font);
+        void SetupIcon(lv_obj_t* label, int x_ofs, int y_ofs, uint32_t hexColor, const char* icon);
+        void SetupBatteryIcon(lv_obj_t* batteryIconParent, int x_ofs, int y_ofs, uint32_t hexColor);
+        void UpdateBattery();
       };
     }
   }
