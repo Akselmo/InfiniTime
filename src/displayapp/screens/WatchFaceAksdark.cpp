@@ -55,27 +55,29 @@ SetupLabel(label_prompt_1, LV_ALIGN_IN_TOP_LEFT, 0, 0, &plex_mono_20);
   */
 
   //BATTERY
-  const int battery_x = 25;
+  const int battery_x = 200;
   const int battery_y = -100;
   batteryValue = lv_label_create(lv_scr_act(), nullptr);
   SetupLabel(batteryValue, battery_x, battery_y, &plex_mono_20);
   chargeIcon = lv_label_create(lv_scr_act(), nullptr);
   batteryIconParent = lv_label_create(lv_scr_act(), nullptr);
-  SetupBatteryIcon(batteryIconParent, battery_x-20, battery_y, 0x6ccc2d);
+  SetupBatteryIcon(batteryIconParent, battery_x-17, battery_y, 0x6ccc2d);
 
   //TIME AND DATE
+  const int time_x = 20;
+  const int time_y = -40;
   label_time = lv_label_create(lv_scr_act(), nullptr);
-  SetupLabel(label_time, 20, -60, &plex_mono_42);
+  SetupLabel(label_time, time_x, time_y, &plex_mono_42);
   label_date = lv_label_create(lv_scr_act(), nullptr);
-  SetupLabel(label_date, 60, -20, &plex_mono_20);
+  SetupLabel(label_date, time_x + 40, time_y + 40, &plex_mono_20);
 
   //STEP
   const int step_x = 40;
-  const int step_y = 80;
+  const int step_y = 100;
   stepValue = lv_label_create(lv_scr_act(), nullptr);
   SetupLabel(stepValue, step_x, step_y, &plex_mono_20);
   stepIcon = lv_label_create(lv_scr_act(), nullptr);
-  SetupIcon(stepIcon, step_x - 25, step_y, 0xffbf40, Symbols::shoe);
+  SetupIcon(stepIcon, step_x - 27, step_y, 0xffbf40, Symbols::shoe);
 
   //HEARTBEAT
   const int heartbeat_x = step_x + 160;
@@ -87,11 +89,11 @@ SetupLabel(label_prompt_1, LV_ALIGN_IN_TOP_LEFT, 0, 0, &plex_mono_20);
 
   //NOTIF
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
-  SetupIcon(notificationIcon, 110, 20, 0x21c7ca, NotificationIcon::GetIcon(true));
+  SetupIcon(notificationIcon, 110, 40, 0x21c7ca, NotificationIcon::GetIcon(true));
 
   //BLUETOOTH
   bluetoothIcon = lv_label_create(lv_scr_act(), nullptr);
-  SetupIcon(bluetoothIcon, 225, -100, 0x3b96ff, Symbols::bluetooth);
+  SetupIcon(bluetoothIcon, 20, -100, 0x3b96ff, Symbols::bluetooth);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
   Refresh();
@@ -106,7 +108,7 @@ void WatchFaceAksdark::Refresh() {
   powerPresent = batteryController.IsPowerPresent();
   batteryPercentRemaining = batteryController.PercentRemaining();
   if (batteryPercentRemaining.IsUpdated() || powerPresent.IsUpdated()) {
-    lv_label_set_text_fmt(batteryValue, "#6ccc2d %d%%", batteryPercentRemaining.Get());
+    lv_label_set_text_fmt(batteryValue, "#6ccc2d %d", batteryPercentRemaining.Get());
     UpdateBattery();
   }
 
