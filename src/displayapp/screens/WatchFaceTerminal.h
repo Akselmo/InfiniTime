@@ -9,6 +9,7 @@
 #include "components/datetime/DateTimeController.h"
 #include "components/ble/SimpleWeatherService.h"
 #include "utility/DirtyValue.h"
+#include "displayapp/screens/BatteryIcon.h"
 
 namespace Pinetime {
   namespace Controllers {
@@ -16,8 +17,6 @@ namespace Pinetime {
     class Battery;
     class Ble;
     class NotificationManager;
-    class HeartRateController;
-    class MotionController;
   }
 
   namespace Applications {
@@ -30,8 +29,6 @@ namespace Pinetime {
                           const Controllers::Ble& bleController,
                           Controllers::NotificationManager& notificationManager,
                           Controllers::Settings& settingsController,
-                          Controllers::HeartRateController& heartRateController,
-                          Controllers::MotionController& motionController,
                           Controllers::SimpleWeatherService& weatherService);
         ~WatchFaceTerminal() override;
 
@@ -43,14 +40,13 @@ namespace Pinetime {
         Utility::DirtyValue<bool> bleState {};
         Utility::DirtyValue<bool> bleRadioEnabled {};
         Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, std::chrono::seconds>> currentDateTime {};
-        Utility::DirtyValue<uint32_t> stepCount {};
-        Utility::DirtyValue<uint8_t> heartbeat {};
-        Utility::DirtyValue<bool> heartbeatRunning {};
         Utility::DirtyValue<bool> notificationState {};
         Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, std::chrono::days>> currentDate;
         Utility::DirtyValue<std::optional<Controllers::SimpleWeatherService::CurrentWeather>> currentWeather {};
 
-        lv_obj_t* container;
+        lv_obj_t* connectState;
+        lv_obj_t* label_time;
+        lv_obj_t* label_date;
         lv_obj_t* notificationIcon;
         lv_obj_t* labelPrompt1;
         lv_obj_t* labelTime;
@@ -59,26 +55,38 @@ namespace Pinetime {
         lv_obj_t* stepValue;
         lv_obj_t* heartbeatValue;
         lv_obj_t* weather;
-        lv_obj_t* connectState;
-        lv_obj_t* labelPrompt2;
+        lv_obj_t* weatherIcon;
+
+        lv_obj_t* topleft_h;
+        lv_obj_t* topleft_w;
+
+        lv_obj_t* bottomright_h;
+        lv_obj_t* bottomright_w;
+
+        lv_color_t defaultCornerColor;
+        lv_color_t activityCornerColor;
+        lv_color_t warningCornerColor;
+
+        BatteryIcon batteryIcon;
+        int batteryPercent = 0;
 
         Controllers::DateTime& dateTimeController;
         const Controllers::Battery& batteryController;
         const Controllers::Ble& bleController;
         Controllers::NotificationManager& notificationManager;
         Controllers::Settings& settingsController;
-        Controllers::HeartRateController& heartRateController;
-        Controllers::MotionController& motionController;
         Controllers::SimpleWeatherService& weatherService;
 
         lv_task_t* taskRefresh;
+
+        void recolorCorners(const lv_color_t& newColor);
       };
     }
 
     template <>
     struct WatchFaceTraits<WatchFace::Terminal> {
       static constexpr WatchFace watchFace = WatchFace::Terminal;
-      static constexpr const char* name = "Terminal";
+      static constexpr const char* name = "Aks";
 
       static Screens::Screen* Create(AppControllers& controllers) {
         return new Screens::WatchFaceTerminal(controllers.dateTimeController,
@@ -86,8 +94,6 @@ namespace Pinetime {
                                               controllers.bleController,
                                               controllers.notificationManager,
                                               controllers.settingsController,
-                                              controllers.heartRateController,
-                                              controllers.motionController,
                                               *controllers.weatherController);
       };
 

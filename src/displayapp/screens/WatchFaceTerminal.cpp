@@ -1,15 +1,15 @@
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/WatchFaceTerminal.h"
 #include "displayapp/screens/BatteryIcon.h"
+#include "displayapp/screens/Symbols.h"
 #include "components/battery/BatteryController.h"
 #include "components/ble/BleController.h"
 #include "components/ble/NotificationManager.h"
-#include "components/heartrate/HeartRateController.h"
-#include "components/motion/MotionController.h"
 #include "components/settings/Settings.h"
 #include "components/ble/SimpleWeatherService.h"
 #include "displayapp/screens/WeatherSymbols.h"
 #include "displayapp/InfiniTimeTheme.h"
+#include "lvgl/src/lv_core/lv_disp.h"
 
 using namespace Pinetime::Applications::Screens;
 
@@ -18,58 +18,76 @@ WatchFaceTerminal::WatchFaceTerminal(Controllers::DateTime& dateTimeController,
                                      const Controllers::Ble& bleController,
                                      Controllers::NotificationManager& notificationManager,
                                      Controllers::Settings& settingsController,
-                                     Controllers::HeartRateController& heartRateController,
-                                     Controllers::MotionController& motionController,
                                      Controllers::SimpleWeatherService& weatherService)
   : currentDateTime {{}},
+    defaultCornerColor {lv_color_hex(0x33ffff)},
+    activityCornerColor {lv_color_hex(0x00ec00)},
+    warningCornerColor {lv_color_hex(0xff3344)},
+    batteryIcon(false),
     dateTimeController {dateTimeController},
     batteryController {batteryController},
     bleController {bleController},
     notificationManager {notificationManager},
     settingsController {settingsController},
-    heartRateController {heartRateController},
-    motionController {motionController},
     weatherService {weatherService} {
 
-  container = lv_cont_create(lv_scr_act(), nullptr);
-  lv_cont_set_layout(container, LV_LAYOUT_COLUMN_LEFT);
-  lv_cont_set_fit(container, LV_FIT_TIGHT);
-  lv_obj_set_style_local_pad_inner(container, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, -3);
-  lv_obj_set_style_local_bg_opa(container, LV_CONT_PART_MAIN, LV_STATE_DEFAULT, LV_OPA_TRANSP);
+  label_time = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_recolor(label_time, true);
+  lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_extrabold_compressed);
+  lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, 0, -10);
+  lv_label_set_align(label_time, LV_LABEL_ALIGN_CENTER);
+  lv_obj_set_auto_realign(label_time, true);
 
-  notificationIcon = lv_label_create(container, nullptr);
+  label_date = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_recolor(label_date, true);
+  lv_obj_align(label_date, label_time, LV_ALIGN_OUT_BOTTOM_MID, 0, 10);
+  lv_label_set_align(label_date, LV_LABEL_ALIGN_CENTER);
+  lv_obj_set_auto_realign(label_date, true);
 
-  labelPrompt1 = lv_label_create(container, nullptr);
-  lv_obj_set_style_local_text_color(labelPrompt1, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
-  lv_label_set_text_static(labelPrompt1, "user@watch:~ $ now");
-
-  labelTime = lv_label_create(container, nullptr);
-  lv_label_set_recolor(labelTime, true);
-
-  labelDate = lv_label_create(container, nullptr);
-  lv_label_set_recolor(labelDate, true);
-
-  batteryValue = lv_label_create(container, nullptr);
-  lv_label_set_recolor(batteryValue, true);
-
-  stepValue = lv_label_create(container, nullptr);
-  lv_label_set_recolor(stepValue, true);
-  lv_obj_set_style_local_text_color(stepValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
-
-  heartbeatValue = lv_label_create(container, nullptr);
-  lv_label_set_recolor(heartbeatValue, true);
-
-  weather = lv_label_create(container, nullptr);
+  weather = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(weather, true);
+  lv_obj_align(weather, label_date, LV_ALIGN_OUT_BOTTOM_MID, 14, 12);
 
-  connectState = lv_label_create(container, nullptr);
+  weatherIcon = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_recolor(weatherIcon, true);
+  lv_obj_align(weatherIcon, weather, LV_ALIGN_OUT_LEFT_MID, -4, 0);
+  lv_obj_set_style_local_text_color(weatherIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x838fff));
+  lv_obj_set_style_local_text_font(weatherIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &fontawesome_weathericons);
+  lv_label_set_text(weatherIcon, "");
+  lv_obj_set_auto_realign(weatherIcon, true);
+
+  batteryIcon.Create(lv_scr_act());
+  lv_obj_align(batteryIcon.GetObject(), lv_scr_act(), LV_ALIGN_IN_TOP_RIGHT, -4, 4);
+
+  connectState = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(connectState, true);
+  lv_obj_set_style_local_text_color(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xff3344));
+  lv_obj_align(connectState, lv_scr_act(), LV_ALIGN_IN_BOTTOM_LEFT, 4, -4);
 
-  labelPrompt2 = lv_label_create(container, nullptr);
-  lv_obj_set_style_local_text_color(labelPrompt2, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
-  lv_label_set_text_static(labelPrompt2, "user@watch:~ $");
+  notificationIcon = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_align(notificationIcon, label_time, LV_ALIGN_OUT_TOP_MID, 0, -16);
+  lv_obj_set_style_local_text_color(notificationIcon, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, activityCornerColor);
 
-  lv_obj_align(container, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 7);
+  // Corners
+  topleft_h = lv_obj_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_radius(topleft_h, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 0);
+  lv_obj_set_size(topleft_h, 4, 16);
+  lv_obj_align(topleft_h, lv_scr_act(), LV_ALIGN_IN_TOP_LEFT, 2, 2);
+  topleft_w = lv_obj_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_radius(topleft_w, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 0);
+  lv_obj_set_size(topleft_w, 16, 4);
+  lv_obj_align(topleft_w, lv_scr_act(), LV_ALIGN_IN_TOP_LEFT, 2, 2);
+
+  bottomright_h = lv_obj_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_radius(bottomright_h, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 0);
+  lv_obj_set_size(bottomright_h, 4, 16);
+  lv_obj_align(bottomright_h, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -2, -2);
+  bottomright_w = lv_obj_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_radius(bottomright_w, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, 0);
+  lv_obj_set_size(bottomright_w, 16, 4);
+  lv_obj_align(bottomright_w, lv_scr_act(), LV_ALIGN_IN_BOTTOM_RIGHT, -2, -2);
+
+  recolorCorners(defaultCornerColor);
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
   Refresh();
@@ -81,75 +99,71 @@ WatchFaceTerminal::~WatchFaceTerminal() {
 }
 
 void WatchFaceTerminal::Refresh() {
+  powerPresent = batteryController.IsPowerPresent();
+  batteryPercentRemaining = batteryController.PercentRemaining();
+  if (batteryPercentRemaining.IsUpdated() || powerPresent.IsUpdated()) {
+    batteryPercent = batteryPercentRemaining.Get();
+    batteryIcon.SetBatteryPercentage(batteryPercent);
+    if (batteryPercent > 10) {
+      batteryIcon.SetColor(lv_color_hex(0x282828));
+    } else {
+      batteryIcon.SetColor(lv_color_hex(0xff3344));
+    }
+    if (batteryController.IsPowerPresent()) {
+      batteryIcon.SetColor(lv_color_hex(0x00ec00));
+    }
+    lv_obj_realign(batteryIcon.GetObject());
+  }
+
   notificationState = notificationManager.AreNewNotificationsAvailable();
   if (notificationState.IsUpdated()) {
     if (notificationState.Get()) {
-      lv_label_set_text_static(notificationIcon, "[1]+ Notify");
+      lv_label_set_text_static(notificationIcon, Symbols::bell);
     } else {
       lv_label_set_text_static(notificationIcon, "");
     }
+    lv_obj_realign(notificationIcon);
+  }
+
+  bleState = bleController.IsConnected();
+  bleRadioEnabled = bleController.IsRadioEnabled();
+  if (bleState.IsUpdated() || bleRadioEnabled.IsUpdated()) {
+    if (!bleRadioEnabled.Get()) {
+      lv_label_set_text(connectState, "BL OFF");
+      lv_obj_set_style_local_bg_color(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x282828));
+    } else {
+      if (!bleState.Get()) {
+        lv_label_set_text(connectState, Symbols::bluetooth);
+        lv_obj_set_style_local_bg_color(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0xff3344));
+      } else {
+        lv_label_set_text(connectState, "");
+      }
+    }
+    lv_obj_realign(connectState);
+  }
+
+  if (notificationState.Get()) {
+    recolorCorners(activityCornerColor);
+  } else if (!bleRadioEnabled.Get() || !bleState.Get() || batteryPercent <= 10) {
+    recolorCorners(warningCornerColor);
+  } else {
+    recolorCorners(defaultCornerColor);
   }
 
   currentDateTime = std::chrono::time_point_cast<std::chrono::seconds>(dateTimeController.CurrentDateTime());
   if (currentDateTime.IsUpdated()) {
     uint8_t hour = dateTimeController.Hours();
     uint8_t minute = dateTimeController.Minutes();
-    uint8_t second = dateTimeController.Seconds();
-
-    if (settingsController.GetClockType() == Controllers::Settings::ClockType::H12) {
-      char ampmChar[3] = "AM";
-      if (hour == 0) {
-        hour = 12;
-      } else if (hour == 12) {
-        ampmChar[0] = 'P';
-      } else if (hour > 12) {
-        hour = hour - 12;
-        ampmChar[0] = 'P';
-      }
-      lv_label_set_text_fmt(labelTime, "#ffffff [TIME]# #11cc55 %02d:%02d:%02d %s#", hour, minute, second, ampmChar);
-    } else {
-      lv_label_set_text_fmt(labelTime, "#ffffff [TIME]# #11cc55 %02d:%02d:%02d#", hour, minute, second);
-    }
+    lv_label_set_text_fmt(label_time, "#33ffff  %02d:%02d", hour, minute);
 
     currentDate = std::chrono::time_point_cast<std::chrono::days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
       uint16_t year = dateTimeController.Year();
       Controllers::DateTime::Months month = dateTimeController.Month();
       uint8_t day = dateTimeController.Day();
-      lv_label_set_text_fmt(labelDate, "#ffffff [DATE]# #007fff %04d-%02d-%02d#", year, month, day);
+      lv_label_set_text_fmt(label_date, "#ffffff %02d/%02d/%04d#", char(day), char(month), short(year));
     }
   }
-
-  powerPresent = batteryController.IsPowerPresent();
-  batteryPercentRemaining = batteryController.PercentRemaining();
-  if (batteryPercentRemaining.IsUpdated() || powerPresent.IsUpdated()) {
-    lv_obj_set_style_local_text_color(batteryValue,
-                                      LV_LABEL_PART_MAIN,
-                                      LV_STATE_DEFAULT,
-                                      BatteryIcon::ColorFromPercentage(batteryPercentRemaining.Get()));
-    lv_label_set_text_fmt(batteryValue, "#ffffff [BATT]# %d%%", batteryPercentRemaining.Get());
-    if (batteryController.IsCharging()) {
-      lv_label_ins_text(batteryValue, LV_LABEL_POS_LAST, " Charging");
-    }
-  }
-
-  stepCount = motionController.NbSteps();
-  if (stepCount.IsUpdated()) {
-    lv_label_set_text_fmt(stepValue, "#ffffff [STEP]# %lu steps", stepCount.Get());
-  }
-
-  heartbeat = heartRateController.HeartRate();
-  heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
-  if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
-    if (heartbeatRunning.Get()) {
-      lv_obj_set_style_local_text_color(heartbeatValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::deepOrange);
-      lv_label_set_text_fmt(heartbeatValue, "#ffffff [L_HR]# %d bpm", heartbeat.Get());
-    } else {
-      lv_label_set_text_static(heartbeatValue, "#ffffff [L_HR]# ---");
-      lv_obj_set_style_local_text_color(heartbeatValue, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::gray);
-    }
-  }
-
   currentWeather = weatherService.Current();
   if (currentWeather.IsUpdated()) {
     auto optCurrentWeather = currentWeather.Get();
@@ -160,30 +174,21 @@ void WatchFaceTerminal::Refresh() {
         temp = optCurrentWeather->temperature.Fahrenheit();
         tempUnit = 'F';
       }
-      lv_label_set_text_fmt(weather,
-                            "#ffffff [WTHR]# #ffdd00 %d°%c %s#",
-                            temp,
-                            tempUnit,
-                            Symbols::GetSimpleCondition(optCurrentWeather->iconId));
-    } else {
-      lv_label_set_text(weather, "#ffffff [WTHR]# #ffdd00 ---");
-    }
-  }
+      lv_label_set_text_fmt(weather, "#838fff %d°%c#", temp, tempUnit);
+      lv_label_set_text(weatherIcon, Symbols::GetSymbol(optCurrentWeather->iconId, weatherService.IsNight()));
 
-  bleState = bleController.IsConnected();
-  bleRadioEnabled = bleController.IsRadioEnabled();
-  if (bleState.IsUpdated() || bleRadioEnabled.IsUpdated()) {
-    if (!bleRadioEnabled.Get()) {
-      lv_label_set_text_static(connectState, "#ffffff [STAT]# Disabled");
-      lv_obj_set_style_local_text_color(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::gray);
     } else {
-      if (bleState.Get()) {
-        lv_label_set_text_static(connectState, "#ffffff [STAT]# Connected");
-        lv_obj_set_style_local_text_color(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::blue);
-      } else {
-        lv_label_set_text_static(connectState, "#ffffff [STAT]# Disconnected");
-        lv_obj_set_style_local_text_color(connectState, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::gray);
-      }
+      lv_label_set_text(weather, "");
+      lv_label_set_text(weatherIcon, "");
     }
+    lv_obj_realign(weather);
+    lv_obj_realign(weatherIcon);
   }
+}
+
+void WatchFaceTerminal::recolorCorners(const lv_color_t& newColor) {
+  lv_obj_set_style_local_bg_color(topleft_h, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, newColor);
+  lv_obj_set_style_local_bg_color(topleft_w, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, newColor);
+  lv_obj_set_style_local_bg_color(bottomright_h, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, newColor);
+  lv_obj_set_style_local_bg_color(bottomright_w, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, newColor);
 }
